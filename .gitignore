@@ -1,0 +1,4 @@
+.env
+node_modules/
+data/error.log
+data/snapshots/*.prev.json

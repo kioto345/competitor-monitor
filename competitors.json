@@ -1,26 +1,10 @@
 [
   {
-    "id": "competitor-a",
-    "name": "Competitor A",
-    "url": "https://competitor-a.com",
-    "maxPages": 300,
+    "id": "001",
+    "name": "https://human-design.space",
+    "url": "https://human-design.space",
+    "maxPages": 1000,
     "maxDepth": 3,
-    "track": ["title", "h1", "description"]
-  },
-  {
-    "id": "competitor-b",
-    "name": "Competitor B",
-    "url": "https://competitor-b.com",
-    "maxPages": 500,
-    "maxDepth": 4,
-    "track": ["title", "h1"]
-  },
-  {
-    "id": "competitor-c",
-    "name": "Competitor C",
-    "url": "https://competitor-c.com",
-    "maxPages": 200,
-    "maxDepth": 2,
     "track": ["title", "h1", "description"]
   }
 ]
