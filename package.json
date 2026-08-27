@@ -1,0 +1,23 @@
+{
+  "name": "competitor-monitor",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Weekly competitor website monitoring agent",
+  "scripts": {
+    "start": "ts-node src/index.ts"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "cheerio": "^1.0.0",
+    "fast-xml-parser": "^4.5.1",
+    "nodemailer": "^6.9.16"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  },
+  "optionalDependencies": {
+    "@types/nodemailer": "^6.4.17"
+  }
+}
