@@ -19,20 +19,34 @@ function normalizeUrl(rawUrl: string): string {
   }
 }
 
-export async function parsePage(url: string, track: TrackField[]): Promise<PageMeta | null> {
-  let html: string;
-  try {
-    const res = await axios.get(url, {
-      timeout: 15000,
-      validateStatus: (s) => s >= 200 && s < 300,
-      headers: { 'User-Agent': 'CompetitorMonitorBot/1.0' },
-    });
-    if (typeof res.data !== 'string') return null;
-    html = res.data;
-  } catch (err: any) {
-    console.warn(`[parser] Failed to fetch ${url}: ${err?.message ?? err}`);
-    return null;
+const MAX_ATTEMPTS = 3;
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchHtml(url: string): Promise<string | null> {
+  let lastErr: unknown;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      const res = await axios.get(url, {
+        timeout: 15000,
+        validateStatus: (s) => s >= 200 && s < 300,
+        headers: { 'User-Agent': 'CompetitorMonitorBot/1.0' },
+      });
+      return typeof res.data === 'string' ? res.data : null;
+    } catch (err) {
+      lastErr = err;
+      if (attempt < MAX_ATTEMPTS) await delay(1000 * attempt);
+    }
   }
+  console.warn(`[parser] Failed to fetch ${url}: ${(lastErr as any)?.message ?? lastErr}`);
+  return null;
+}
+
+export async function parsePage(url: string, track: TrackField[]): Promise<PageMeta | null> {
+  const html = await fetchHtml(url);
+  if (html === null) return null;
 
   const $ = cheerio.load(html);
 

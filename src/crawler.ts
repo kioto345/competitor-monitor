@@ -50,17 +50,22 @@ function shouldSkipLink(href: string): boolean {
   return false;
 }
 
+const MAX_FETCH_ATTEMPTS = 3;
+
 async function fetchXml(url: string): Promise<string | null> {
-  try {
-    const res = await axios.get(url, {
-      timeout: 15000,
-      validateStatus: (s) => s >= 200 && s < 300,
-      headers: { 'User-Agent': 'CompetitorMonitorBot/1.0' },
-    });
-    return typeof res.data === 'string' ? res.data : String(res.data);
-  } catch {
-    return null;
+  for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt++) {
+    try {
+      const res = await axios.get(url, {
+        timeout: 15000,
+        validateStatus: (s) => s >= 200 && s < 300,
+        headers: { 'User-Agent': 'CompetitorMonitorBot/1.0' },
+      });
+      return typeof res.data === 'string' ? res.data : String(res.data);
+    } catch {
+      if (attempt < MAX_FETCH_ATTEMPTS) await delay(1000 * attempt);
+    }
   }
+  return null;
 }
 
 async function collectFromSitemap(sitemapUrl: string, visitedSitemaps: Set<string>): Promise<string[]> {
