@@ -18,13 +18,33 @@ function normalizeUrl(rawUrl: string): string {
   }
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchHtml(url: string): Promise<string> {
+  const attempts = 3;
+  let lastErr: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const res = await axios.get(url, {
+        timeout: 15000,
+        headers: { 'User-Agent': 'competitor-monitor-bot/1.0' },
+        validateStatus: (s) => s >= 200 && s < 300,
+      });
+      return typeof res.data === 'string' ? res.data : String(res.data);
+    } catch (err) {
+      lastErr = err;
+      if (i < attempts - 1) {
+        await sleep(1500 * (i + 1));
+      }
+    }
+  }
+  throw lastErr;
+}
+
 export async function parsePage(url: string, track: TrackField[]): Promise<PageMeta> {
-  const res = await axios.get(url, {
-    timeout: 15000,
-    headers: { 'User-Agent': 'competitor-monitor-bot/1.0' },
-    validateStatus: (s) => s >= 200 && s < 300,
-  });
-  const html = typeof res.data === 'string' ? res.data : String(res.data);
+  const html = await fetchHtml(url);
   const $ = cheerio.load(html);
 
   const title = track.includes('title') ? ($('title').first().text() || '').trim() : '';
