@@ -19,17 +19,36 @@ function normalizeUrl(raw: string): string {
   }
 }
 
+const MAX_ATTEMPTS = 3;
+const RETRY_DELAY_MS = 1500;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export async function parsePage(url: string, track: TrackField[]): Promise<PageMeta | null> {
-  let html: string;
-  try {
-    const res = await axios.get(url, {
-      timeout: 15000,
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; CompetitorMonitor/1.0)' },
-      validateStatus: (status) => status >= 200 && status < 400,
-    });
-    html = typeof res.data === 'string' ? res.data : String(res.data);
-  } catch (err: any) {
-    console.warn(`[parser] Failed to fetch ${url}: ${err?.message || err}`);
+  let html: string | null = null;
+  let lastErr: any = null;
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      const res = await axios.get(url, {
+        timeout: 15000,
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; CompetitorMonitor/1.0)' },
+        validateStatus: (status) => status >= 200 && status < 400,
+      });
+      html = typeof res.data === 'string' ? res.data : String(res.data);
+      break;
+    } catch (err: any) {
+      lastErr = err;
+      if (attempt < MAX_ATTEMPTS) {
+        await sleep(RETRY_DELAY_MS);
+      }
+    }
+  }
+
+  if (html === null) {
+    console.warn(`[parser] Failed to fetch ${url} after ${MAX_ATTEMPTS} attempts: ${lastErr?.message || lastErr}`);
     return null;
   }
 

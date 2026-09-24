@@ -39,17 +39,24 @@ function isSkippableHref(href: string): boolean {
 }
 
 async function fetchText(url: string): Promise<string | null> {
-  try {
-    const res = await axios.get(url, {
-      timeout: 15000,
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; CompetitorMonitor/1.0)' },
-      validateStatus: (status) => status >= 200 && status < 400,
-    });
-    return typeof res.data === 'string' ? res.data : String(res.data);
-  } catch {
-    return null;
+  const maxAttempts = 3;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const res = await axios.get(url, {
+        timeout: 15000,
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; CompetitorMonitor/1.0)' },
+        validateStatus: (status) => status >= 200 && status < 400,
+      });
+      return typeof res.data === 'string' ? res.data : String(res.data);
+    } catch {
+      if (attempt < maxAttempts) {
+        await sleep(1500);
+      }
+    }
   }
+  return null;
 }
+
 
 async function fetchSitemapUrls(sitemapUrl: string, depth = 0): Promise<string[]> {
   if (depth > 3) return [];
