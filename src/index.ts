@@ -153,7 +153,7 @@ function gitCommitSnapshots(): void {
       return;
     }
     const date = new Date().toISOString().slice(0, 10);
-    execSync(`git commit -m "chore: weekly snapshot ${date}"`, { cwd: ROOT, stdio: 'inherit' });
+    execSync(`git commit -m "chore: snapshot ${date}"`, { cwd: ROOT, stdio: 'inherit' });
     execSync('git push', { cwd: ROOT, stdio: 'inherit' });
   } catch (err) {
     console.error(`[git] Ошибка при коммите/пуше: ${(err as Error).message}`);
